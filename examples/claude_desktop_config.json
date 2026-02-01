@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "bundestag": {
+      "command": "python",
+      "args": ["-m", "bundestag_mcp.server"],
+      "env": {
+        "BUNDESTAG_API_KEY": ""
+      },
+      "cwd": "/path/to/bundestag-mcp"
+    }
+  }
+}
