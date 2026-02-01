@@ -27,6 +27,12 @@ dependencies = [
     "httpx>=0.27.0",
     "aiosqlite>=0.20.0",
     "pydantic>=2.0.0",
+    # API dependencies
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    "sse-starlette>=2.0.0",
+    "slowapi>=0.1.9",
+    "anthropic>=0.40.0",
 ]
 
 [project.optional-dependencies]
@@ -41,6 +47,7 @@ semantic = [
 
 [project.scripts]
 bundestag-mcp = "bundestag_mcp.server:main"
+bundestag-api = "bundestag_mcp.api.main:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/bundestag_mcp"]
