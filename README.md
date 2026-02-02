@@ -1,5 +1,7 @@
 # Bundestag MCP Server
 
+> **⚠️ Work in Progress**: This project is under active development. APIs may change. Contributions welcome!
+
 An MCP (Model Context Protocol) server that provides programmatic access to official German Bundestag parliamentary data. This enables LLMs to answer questions about German parliament activities, legislation, voting records, and members.
 
 ## Disclaimer
@@ -148,6 +150,23 @@ pip install -e ".[dev]"
 pytest
 ruff check .
 ```
+
+### Tests
+
+The project includes unit tests and validation tests for the voting analysis:
+
+```bash
+# Run all tests
+pytest
+
+# Run voting calculation tests with verbose output
+pytest tests/test_voting*.py -v
+```
+
+Key test coverage:
+- **Alignment calculation**: Tests for 0%, 50%, 100% alignment scenarios
+- **Real data validation**: Tests using actual Poll 6391 data to verify calculations
+- **Edge cases**: Missing parties, abstention handling, interpretation text
 
 ## License
 

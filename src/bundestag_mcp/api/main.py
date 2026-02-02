@@ -15,7 +15,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 # Create FastAPI app
 app = FastAPI(
-    title="Bundestag Truth API",
+    title="Bundestag MCP API",
     description="API providing access to German Bundestag parliamentary data and voting records",
     version="1.0.0",
     docs_url="/docs",
@@ -53,7 +53,7 @@ async def root():
     """Health check endpoint."""
     return {
         "status": "ok",
-        "service": "Bundestag Truth API",
+        "service": "Bundestag MCP API",
         "version": "1.0.0",
     }
 

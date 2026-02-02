@@ -24,7 +24,7 @@ class TestHealthEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
-        assert data["service"] == "Bundestag Truth API"
+        assert data["service"] == "Bundestag MCP API"
 
     def test_health(self, client):
         """Test health endpoint."""
