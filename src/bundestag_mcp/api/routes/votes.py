@@ -20,14 +20,25 @@ limiter = Limiter(key_func=get_remote_address)
 async def list_votes(
     request: Request,
     topic: str | None = Query(None, description="Filter by topic keyword (e.g., 'Migration', 'Klima')"),
+    outcome: str | None = Query(None, description="Filter by outcome ('passed' or 'failed')"),
     limit: int = Query(10, ge=1, le=50, description="Maximum number of results"),
 ):
     """Get roll-call votes (namentliche Abstimmungen) from the Bundestag.
 
     Returns votes where every MP's individual vote is recorded.
     """
-    result = await get_roll_call_votes(topic=topic, limit=limit)
-    return json.loads(result)
+    # Fetch more than needed if filtering by outcome, then filter
+    fetch_limit = limit * 3 if outcome else limit
+    result = await get_roll_call_votes(topic=topic, limit=fetch_limit)
+    data = json.loads(result)
+
+    # Filter by outcome if specified
+    if outcome and "polls" in data:
+        passed_filter = outcome.lower() == "passed"
+        data["polls"] = [p for p in data["polls"] if p.get("passed") == passed_filter][:limit]
+        data["filtered_by_outcome"] = outcome
+
+    return data
 
 
 @router.get("/votes/{poll_id}")

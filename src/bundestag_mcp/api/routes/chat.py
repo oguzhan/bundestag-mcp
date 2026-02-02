@@ -50,6 +50,23 @@ IMPORTANT GUIDELINES:
 6. Present numbers and percentages when available
 7. Respond in the same language the user writes in (German or English)
 
+PARTY COMPARISON QUERIES:
+When users ask to compare two parties (e.g., "Compare AfD vs CDU"), ALWAYS use get_party_alignment_score.
+This returns rich data with alignment percentage, shared votes, and disagreements that will be
+displayed as an interactive card. Keep your text response brief (1-2 sentences) since the card
+provides the detailed breakdown with clickable vote links.
+
+NAVIGATION GUIDANCE:
+You can also use suggest_navigation to help users explore more data in the full UI:
+- User asks about multiple votes on a topic → suggest votes page with topic filter
+- User wants to see the full alignment matrix → suggest parties page
+- User asks about an MP → suggest MPs page with that name pre-filled
+
+Examples:
+- "Show me climate votes" → suggest_navigation(page="votes", params={topic: "Klima"})
+- "Show me the full party matrix" → suggest_navigation(page="parties")
+- "Tell me about Olaf Scholz" → suggest_navigation(page="mps", params={search: "Scholz"})
+
 Data sources:
 - Voting records: AbgeordnetenWatch (CC0 licensed)
 - Parliamentary documents: Official Bundestag DIP API
@@ -264,7 +281,67 @@ CLAUDE_TOOLS = [
             "required": ["keywords"],
         },
     },
+    {
+        "name": "suggest_navigation",
+        "description": "Suggest navigating to a specific page with filters applied. Use this when the user's question would be better answered by viewing the full UI with data visualization.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "string",
+                    "enum": ["votes", "parties", "mps"],
+                    "description": "Which page to navigate to",
+                },
+                "params": {
+                    "type": "object",
+                    "description": "URL parameters/filters to apply",
+                    "properties": {
+                        "topic": {
+                            "type": "string",
+                            "description": "Topic filter for votes page (e.g., 'Klima', 'Migration', 'Wohnen')",
+                        },
+                        "party1": {
+                            "type": "string",
+                            "description": "First party for comparison on parties page",
+                        },
+                        "party2": {
+                            "type": "string",
+                            "description": "Second party for comparison on parties page",
+                        },
+                        "outcome": {
+                            "type": "string",
+                            "enum": ["passed", "failed"],
+                            "description": "Filter by vote outcome",
+                        },
+                        "search": {
+                            "type": "string",
+                            "description": "Search term for MPs page",
+                        },
+                    },
+                },
+                "reason": {
+                    "type": "string",
+                    "description": "Brief explanation of why this view would be helpful (shown to user)",
+                },
+            },
+            "required": ["page", "reason"],
+        },
+    },
 ]
+
+async def suggest_navigation(page: str, params: dict | None = None, reason: str = "") -> str:
+    """Return a navigation suggestion for the frontend.
+
+    This tool doesn't actually navigate - it returns structured data
+    that the frontend can use to show a navigation button.
+    """
+    return json.dumps({
+        "action": "navigate",
+        "page": page,
+        "params": params or {},
+        "reason": reason,
+    })
+
 
 # Map tool names to functions
 TOOL_MAP: dict[str, Any] = {
@@ -283,6 +360,7 @@ TOOL_MAP: dict[str, Any] = {
     "get_plenary_protocols": get_plenary_protocols,
     "get_current_week": get_current_week,
     "get_mp_votes": get_mp_votes,
+    "suggest_navigation": suggest_navigation,
 }
 
 

@@ -634,6 +634,7 @@ async def get_party_alignment_score(
                     different_vote += 1
 
                 vote_details.append({
+                    "poll_id": poll_id,
                     "title": poll.get("label")[:60],
                     "date": poll.get("field_poll_date"),
                     party1: p1_vote,
