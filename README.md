@@ -98,6 +98,53 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
 python -m bundestag_mcp.server
 ```
 
+### REST API
+
+In addition to the MCP server, the project exposes a FastAPI HTTP layer that serves the same tools over REST. This is useful for web apps, dashboards, or any non-MCP consumer.
+
+Start the API server:
+
+```bash
+bundestag-api
+```
+
+By default it binds to `http://0.0.0.0:8000`. Configure with environment variables:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `HOST` | `0.0.0.0` | Bind address |
+| `PORT` | `8000` | Bind port |
+| `ALLOWED_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000` | Comma-separated CORS origins |
+| `ENV` | `development` | Set to `production` to disable auto-reload |
+
+Interactive API docs are available at:
+
+- `http://localhost:8000/docs` — Swagger UI
+- `http://localhost:8000/redoc` — ReDoc
+
+Example requests:
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Recent roll-call votes on a topic
+curl "http://localhost:8000/api/v1/votes?topic=Klima&limit=5"
+
+# Party-by-party breakdown of a specific vote
+curl http://localhost:8000/api/v1/votes/6391
+```
+
+Endpoint groups (see `/docs` for full schemas):
+
+- `GET /api/v1/votes` — list roll-call votes, filter by topic/outcome
+- `GET /api/v1/votes/{poll_id}` — party breakdown of a specific vote
+- `GET /api/v1/votes/compare` — compare party voting on a topic
+- `GET /api/v1/parties/*` — party-level analytics (alignment, unity, absence)
+- `GET /api/v1/mps/*` — MP lookup and voting history
+- `GET /api/v1/documents/*` — document and procedure search
+- `POST /api/chat` — agentic chat endpoint backed by the above tools
+
 ## Available Tools
 
 ### Document & Procedure Tools
