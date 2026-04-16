@@ -1,6 +1,7 @@
 """DIP API client wrapper using bundestag-api package."""
 
 import os
+from datetime import datetime, timedelta
 from functools import lru_cache
 from typing import Any
 
@@ -270,19 +271,23 @@ class DIPClient:
         except Exception as e:
             raise RuntimeError(f"Failed to get activities: {e}") from e
 
-    def get_current_activities(self, limit: int = 20) -> list[dict[str, Any]]:
+    def get_current_activities(
+        self, limit: int = 20, days_back: int = 7
+    ) -> list[dict[str, Any]]:
         """Get recent/current activities.
+
+        Args:
+            limit: Maximum results
+            days_back: How many days back to look from today (default 7)
 
         Returns:
             List of recent activities
         """
-        from datetime import datetime, timedelta
-
         today = datetime.now()
-        week_ago = today - timedelta(days=7)
+        window_start = today - timedelta(days=days_back)
 
         return self.get_activities(
-            date_start=week_ago.strftime("%Y-%m-%d"),
+            date_start=window_start.strftime("%Y-%m-%d"),
             date_end=today.strftime("%Y-%m-%d"),
             limit=limit,
         )
