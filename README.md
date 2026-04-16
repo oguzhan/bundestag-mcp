@@ -100,29 +100,147 @@ python -m bundestag_mcp.server
 
 ## Available Tools
 
-### Document & Procedure Tools
+The server exposes 15 tools across three groups. Each entry documents its full input schema. Required parameters are marked ✓; optional ones show the default in parentheses.
 
-| Tool | Description |
-|------|-------------|
-| `search_documents` | Search parliamentary documents by keywords, date, type |
-| `search_procedures` | Track legislative procedures and their status |
-| `get_plenary_protocols` | Access debate transcripts |
-| `get_mp_info` | Get MP biographical information |
-| `get_current_week` | Get current week's parliamentary schedule |
+### Document & Procedure Tools (DIP API)
 
-### Voting Record Tools
+#### `search_documents`
+Search parliamentary documents (Drucksachen): bills, motions, reports, and answers to parliamentary questions.
 
-| Tool | Description |
-|------|-------------|
-| `get_roll_call_votes` | List recorded votes with results |
-| `get_vote_details` | Party breakdown for a specific vote |
-| `compare_party_votes` | Compare party voting on a topic |
-| `get_mp_voting_history` | Individual MP's voting record |
-| `check_party_consistency` | Analyze party voting patterns on a topic |
-| `get_party_alignment_score` | Calculate voting alignment between two parties |
-| `get_absence_rates` | Party attendance statistics |
-| `get_party_unity_scores` | Internal party voting cohesion |
-| `find_rebel_mps` | Find MPs who voted differently from their party |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `keywords` | string | ✓ | Search keywords, German or English (e.g. `"Klimaschutz"` or `"climate protection"`) |
+| `date_start` | string | — | Start date, `YYYY-MM-DD` |
+| `date_end` | string | — | End date, `YYYY-MM-DD` |
+| `document_type` | string | — | `"Gesetzentwurf"` (bill), `"Antrag"` (motion), `"Kleine Anfrage"` (minor interpellation), `"Große Anfrage"` (major interpellation) |
+| `limit` | integer | — (10) | Max results, up to 50 |
+
+#### `search_procedures`
+Track legislative processes (Vorgänge) and their current status.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `keywords` | string | ✓ | Search keywords for the procedure title or content |
+| `status` | string | — | One of `"Noch nicht beraten"`, `"Im Bundestag noch nicht beraten"`, `"Überwiesen"`, `"Beschlussempfehlung liegt vor"`, `"Abgeschlossen"` |
+| `date_start` | string | — | Start date, `YYYY-MM-DD` |
+| `date_end` | string | — | End date, `YYYY-MM-DD` |
+| `limit` | integer | — (10) | Max results |
+
+#### `get_plenary_protocols`
+Search plenary debate transcripts (Plenarprotokolle) by keyword or speaker.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `keywords` | string | — | Search keywords to find in debate transcripts |
+| `speaker` | string | — | Filter by speaker name |
+| `date_start` | string | — | Start date, `YYYY-MM-DD` |
+| `date_end` | string | — | End date, `YYYY-MM-DD` |
+| `limit` | integer | — (10) | Max results |
+
+#### `get_mp_info`
+Look up an MdB's party affiliation, constituency, committee memberships, and biographical info.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | — | MP name, full or partial (e.g. `"Scholz"` or `"Olaf Scholz"`) |
+| `mp_id` | string | — | Bundestag person ID, if known |
+
+At least one of `name` or `mp_id` should be provided.
+
+#### `get_mp_votes`
+Voting record for a single MP, optionally filtered by topic or date range.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `mp_id` | string | — | Bundestag person ID |
+| `name` | string | — | MP name (alternative to `mp_id`) |
+| `topic_filter` | string | — | Filter votes by topic keywords |
+| `date_start` | string | — | Start date, `YYYY-MM-DD` |
+| `date_end` | string | — | End date, `YYYY-MM-DD` |
+| `limit` | integer | — (10) | Max results |
+
+At least one of `mp_id` or `name` should be provided.
+
+#### `get_current_week`
+The current week's Bundestag schedule: plenary debates, votes, committee meetings. Takes no parameters.
+
+### Voting Record Tools (AbgeordnetenWatch API)
+
+#### `get_roll_call_votes`
+List roll-call votes (namentliche Abstimmungen) where each MP's vote is recorded. Foundation for the other voting tools.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `topic` | string | — | Filter by topic keyword (e.g. `"Migration"`, `"Klima"`, `"Rente"`, `"Wohnen"`) |
+| `limit` | integer | — (10) | Max results |
+
+#### `get_vote_details`
+Party-by-party breakdown for one specific vote.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `poll_id` | integer | ✓ | Poll/vote ID (obtain from `get_roll_call_votes`) |
+
+#### `compare_party_votes`
+Compare how different parties voted on a topic across multiple recent votes.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `topic` | string | ✓ | Topic to analyze (e.g. `"Migration"`, `"Klima"`, `"Soziales"`, `"Rente"`) |
+| `limit` | integer | — (5) | Number of recent votes to analyze |
+
+#### `get_mp_voting_history`
+Detailed voting history for one MP — how they actually voted, not what they said.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | ✓ | MP name (e.g. `"Merz"`, `"Scholz"`, `"Weidel"`, `"Habeck"`) |
+| `topic` | string | — | Optional topic filter |
+| `limit` | integer | — (20) | Max votes to return |
+
+#### `check_party_consistency`
+Check whether a party votes consistently on a given topic.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `party` | string | ✓ | Party name (`"CDU/CSU"`, `"SPD"`, `"AfD"`, `"Grüne"`, `"Die Linke"`, `"BSW"`) |
+| `topic` | string | ✓ | Topic to check (e.g. `"Migration"`, `"Klima"`, `"Rente"`) |
+| `limit` | integer | — (10) | Number of votes to analyze |
+
+### Advanced Analytical Tools
+
+These compute across multiple votes — answers that web search cannot produce.
+
+#### `get_party_alignment_score`
+How often two parties vote the same way.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `party1` | string | ✓ | First party |
+| `party2` | string | ✓ | Second party |
+| `limit` | integer | — (20) | Number of votes to analyze |
+
+#### `get_absence_rates`
+Per-party no-show rates across recorded votes.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `limit` | integer | — (20) | Number of votes to analyze |
+
+#### `get_party_unity_scores`
+Percentage of each party that votes with its own majority — internal cohesion.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `limit` | integer | — (20) | Number of votes to analyze |
+
+#### `find_rebel_mps`
+MPs who most often vote against their own party.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `party` | string | ✓ | Party to analyze |
+| `limit` | integer | — (10) | Number of votes to analyze |
 
 ## Example Queries
 
